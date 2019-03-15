@@ -624,7 +624,8 @@
     time/utc))
 
 
-(defn- paginate? [{{context :context} :info}]
+(defn- paginate? [{{context :context} :info, info :info}]
+  (log/info (str "paginate -> context = " context " info: " info))
   (contains? #{:csv-download :json-download :xlsx-download} context))
 
 (defn- execute-query [{{sql :query, params :params, :keys [table-name mbql?]} :native
