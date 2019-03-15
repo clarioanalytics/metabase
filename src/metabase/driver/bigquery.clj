@@ -189,7 +189,7 @@
         project-id           (.getProjectId (.getJobReference response))]
     (.getQueryResults (.jobs client) project-id job-id)))
 
-(defn- ^QueryResponse execute-bigquery
+(defn- execute-bigquery
   ([^BigqueryRequest request]
    (log/debug (u/format-color 'cyan (str "execute-bigquery -> request:\n" request)))
    (google/execute request))
@@ -254,7 +254,13 @@
    "TIMESTAMP" parse-timestamp-str
    "TIME"      parse-bigquery-time})
 
-(defn- process-rows [^QueryResponse response]
+;; Need to duck-type `response` var
+;;    - non-paged results sets pass `QueryResponse`
+;;    - paged result sets `GetQueryResultsResponse`
+;; Unfortunately the BQ API does NOT have a generic `Response` interface
+;; for us to use as the parent type, sad face...
+;; TODO - can we impl multiple signatures via type hints or something?
+(defn- process-rows [response]
   (let [^TableSchema schema (.getSchema response)
         parsers             (doall
                              (for [^TableFieldSchema field (.getFields schema)
@@ -278,7 +284,12 @@
                     (when-not (= (class v) Object)
                       (parser v)))))}))
 
-(defn- page-results [^QueryResponse response, ^BigqueryRequest request, rows]
+;; Need to duck-type `response` var - first call passes `QueryResponse`
+;; whereas subsequent paging calls pass `GetQueryResultsResponse` and
+;; unfortunately the BQ API does NOT have a generic `Response` interface
+;; for us to use as the parent type, sad face...
+;; TODO - can we impl multiple signatures via type hints or something?
+(defn- page-results [response, ^BigqueryRequest request, rows]
   (let [fetched-rows (concat rows (.getRows response))
         page-token   (.getPageToken response)
         next-request (.set request "pageToken" page-token)]
