@@ -570,7 +570,6 @@
               :or   {constraints qp/default-query-constraints
                      context     :question}}]
   {:pre [(u/maybe? sequential? parameters)]}
-  (log/info (str "run-query-for-card -> constraints: " constraints " context: " context))
   (let [card    (api/read-check (Card card-id))
         query   (query-for-card card parameters constraints middleware)
         options {:executed-by  api/*current-user-id*
