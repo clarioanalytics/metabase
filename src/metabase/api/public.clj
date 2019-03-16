@@ -71,7 +71,7 @@
   (u/prog1 (-> ;; run this query with full superuser perms
             (binding [api/*current-user-permissions-set*     (atom #{"/"})
                       qp/*allow-queries-with-no-executor-id* true]
-              (apply card-api/run-query-for-card card-id, :parameters parameters, :context :public-question, options))
+              (apply card-api/run-query-for-card card-id, :parameters parameters, options))
             (u/select-nested-keys [[:data :columns :cols :rows :rows_truncated :insights] [:json_query :parameters] :error :status]))
     ;; if the query failed instead of returning anything about the query just return a generic error message
     (when (= (:status <>) :failed)
@@ -101,7 +101,8 @@
   {parameters    (s/maybe su/JSONString)
    export-format dataset-api/ExportFormat}
   (dataset-api/as-format export-format
-    (run-query-for-card-with-public-uuid uuid (json/parse-string parameters keyword), :constraints nil)))
+    (run-query-for-card-with-public-uuid uuid (json/parse-string parameters keyword),
+                                         :constraints nil, :context (dataset-api/export-format->context export-format))))
 
 
 
