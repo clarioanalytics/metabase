@@ -68,15 +68,14 @@
   "Run the query belonging to Card with CARD-ID with PARAMETERS and other query options (e.g. `:constraints`)."
   {:style/indent 2}
   [card-id parameters & options]
-  (let [context (or (:context options) :public-question)]
   (u/prog1 (-> ;; run this query with full superuser perms
             (binding [api/*current-user-permissions-set*     (atom #{"/"})
                       qp/*allow-queries-with-no-executor-id* true]
-              (apply card-api/run-query-for-card card-id, :parameters parameters, :context context, options))
+              (apply card-api/run-query-for-card card-id, :parameters parameters, options))
             (u/select-nested-keys [[:data :columns :cols :rows :rows_truncated :insights] [:json_query :parameters] :error :status]))
     ;; if the query failed instead of returning anything about the query just return a generic error message
     (when (= (:status <>) :failed)
-      (throw (ex-info "An error occurred while running the query." {:status-code 400}))))))
+      (throw (ex-info "An error occurred while running the query." {:status-code 400})))))
 
 (defn- run-query-for-card-with-public-uuid
   "Run query for a *public* Card with UUID. If public sharing is not enabled, this throws an exception."
@@ -93,7 +92,7 @@
    credentials. Public sharing must be enabled."
   [uuid parameters]
   {parameters (s/maybe su/JSONString)}
-  (run-query-for-card-with-public-uuid uuid (json/parse-string parameters keyword)))
+  (run-query-for-card-with-public-uuid uuid, (json/parse-string parameters keyword), :context :public-question))
 
 (api/defendpoint GET "/card/:uuid/query/:export-format"
   "Fetch a publicly-accessible Card and return query results in the specified format. Does not require auth
