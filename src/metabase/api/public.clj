@@ -67,11 +67,13 @@
 (defn run-query-for-card-with-id
   "Run the query belonging to Card with CARD-ID with PARAMETERS and other query options (e.g. `:constraints`)."
   {:style/indent 2}
-  [card-id parameters & {context :context, :or {context :public-question}, :as options}]
+  [card-id parameters & {:keys [context constraints]
+                         :or   {context     :public-question,
+                                constraints qp/default-query-constraints}}]
   (u/prog1 (-> ;; run this query with full superuser perms
             (binding [api/*current-user-permissions-set*     (atom #{"/"})
                       qp/*allow-queries-with-no-executor-id* true]
-              (apply card-api/run-query-for-card card-id, :parameters parameters, :context context, options))
+              (apply card-api/run-query-for-card card-id, :parameters parameters, :context context, :constraints constraints))
             (u/select-nested-keys [[:data :columns :cols :rows :rows_truncated :insights] [:json_query :parameters] :error :status]))
     ;; if the query failed instead of returning anything about the query just return a generic error message
     (when (= (:status <>) :failed)
