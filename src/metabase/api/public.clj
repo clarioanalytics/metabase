@@ -102,7 +102,9 @@
    export-format dataset-api/ExportFormat}
   (dataset-api/as-format export-format
     (run-query-for-card-with-public-uuid uuid (json/parse-string parameters keyword),
-                                         :constraints nil, :context (dataset-api/export-format->context export-format))))
+                                         :constraints nil,
+                                         :context (dataset-api/export-format->context export-format)
+                                         :middleware  {:skip-results-metadata? true})))
 
 
 
