@@ -68,7 +68,7 @@
   "Run the query belonging to Card with CARD-ID with PARAMETERS and other query options (e.g. `:constraints`)."
   {:style/indent 2}
   [card-id parameters & options]
-  (let [context (or :context options :public-question)]
+  (let [context (or (:context options) :public-question)]
   (u/prog1 (-> ;; run this query with full superuser perms
             (binding [api/*current-user-permissions-set*     (atom #{"/"})
                       qp/*allow-queries-with-no-executor-id* true]
