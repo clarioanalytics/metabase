@@ -1,8 +1,10 @@
 (ns metabase.util.export
   (:require [cheshire.core :as json]
             [clojure.data.csv :as csv]
-            [dk.ative.docjure.spreadsheet :as spreadsheet])
-  (:import [java.io ByteArrayInputStream ByteArrayOutputStream File]
+            [clojure.java.io :as io]
+            [dk.ative.docjure.spreadsheet :as spreadsheet]
+            [ring.util.io :as ring-io])
+  (:import [java.io BufferedWriter ByteArrayInputStream ByteArrayOutputStream File OutputStreamWriter]
            org.apache.poi.ss.usermodel.Cell))
 
 ;; add a generic implementation for the method that writes values to XLSX cells that just piggybacks off the
@@ -40,9 +42,11 @@
          (spreadsheet/save-workbook! file-path))))
 
 (defn- export-to-csv [columns rows]
-  (with-out-str
-    ;; turn keywords into strings, otherwise we get colons in our output
-    (csv/write-csv *out* (into [(mapv name columns)] rows))))
+  "Write a CSV file directly to an output stream, prevents loading full CSV into memory"
+  (let [csv        (into [(mapv name columns)] rows)
+        stream-csv (fn [out] (csv/write-csv out csv)
+                     (.flush out))]
+    (ring-io/piped-input-stream #(stream-csv (io/make-writer % {})))))
 
 (defn export-to-csv-writer
   "Write a CSV to `FILE` with the header a and rows found in `RESULTS`"
