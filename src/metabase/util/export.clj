@@ -27,11 +27,11 @@
         (get-in results [:result :data :rows])))
 
 (defn- export-to-xlsx [columns rows]
-  (let [wb  (spreadsheet/create-workbook "Query result" (cons (mapv name columns) rows))
-        ;; note: byte array streams don't need to be closed
-        out (ByteArrayOutputStream.)]
-    (spreadsheet/save-workbook! out wb)
-    (ByteArrayInputStream. (.toByteArray out))))
+  "Write a workbook to an OutputStream"
+  (let [wb          (spreadsheet/create-workbook "Query result" (cons (mapv name columns) rows))
+        stream-xlsx (fn [out] (spreadsheet/save-workbook-into-stream! out wb)
+                      (.flush out))]
+    (ring-io/piped-input-stream #(stream-xlsx (io/make-output-stream % {}))) ))
 
 (defn export-to-xlsx-file
   "Write an XLS file to `FILE` with the header a and rows found in `RESULTS`"
