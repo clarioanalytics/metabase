@@ -31,7 +31,7 @@
   (let [wb          (spreadsheet/create-workbook "Query result" (cons (mapv name columns) rows))
         stream-xlsx (fn [out] (spreadsheet/save-workbook-into-stream! out wb)
                       (.flush out))]
-    (ring-io/piped-input-stream #(stream-xlsx (io/make-output-stream % {}))) ))
+    (ring-io/piped-input-stream #(stream-xlsx (io/make-output-stream % {})))))
 
 (defn export-to-xlsx-file
   "Write an XLS file to `FILE` with the header a and rows found in `RESULTS`"
