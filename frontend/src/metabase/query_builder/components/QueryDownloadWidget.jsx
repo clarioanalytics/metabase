@@ -43,7 +43,9 @@ const QueryDownloadWidget = ({
       w={result.data && result.data.rows_truncated != null ? 300 : 260}
     >
       <Box p={1}>
-        <h4>{t`Download full results`}</h4>
+        <Tooltip tooltip={t`All filters are applied during download file creation`}>
+          <h4>{t`Download results`}</h4>
+        </Tooltip>
       </Box>
       {result.data != null &&
         result.data.rows_truncated != null && (
