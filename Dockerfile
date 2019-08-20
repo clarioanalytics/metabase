@@ -37,7 +37,7 @@ RUN yarn
 ADD . .
 
 # build the app
-RUN bin/build
+RUN bin/build no-translations
 
 # install updated cacerts to /etc/ssl/certs/java/cacerts
 RUN apk add --update java-cacerts
